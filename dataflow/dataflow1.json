@@ -1,0 +1,32 @@
+{
+	"name": "dataflow1",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "DelimitedText1",
+						"type": "DatasetReference"
+					},
+					"name": "source1"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "AzureSqlTable1",
+						"type": "DatasetReference"
+					},
+					"name": "sink1"
+				}
+			],
+			"transformations": [
+				{
+					"name": "DerivedColumn1"
+				}
+			],
+			"script": "source(output(\n\t\tarea_type as string,\n\t\tavailability as string,\n\t\tlocation as string,\n\t\tsize as string,\n\t\tsociety as string,\n\t\ttotal_sqft as string,\n\t\tbath as string,\n\t\tbalcony as string,\n\t\tprice as string\n\t),\n\tallowSchemaDrift: true,\n\tvalidateSchema: false,\n\tignoreNoFilesFound: false) ~> source1\nsource1 derive(availability = iif(isDate(availability, 'dd-MM-yyyy'), toDate(availability, 'dd-MM-yyyy'), currentDate()),\n\t\tsize = split(size, ' ')[1],\n\t\ttotal_sqft = trim(split(total_sqft, '-')[1], ' ')) ~> DerivedColumn1\nDerivedColumn1 sink(allowSchemaDrift: true,\n\tvalidateSchema: false,\n\tdeletable:false,\n\tinsertable:true,\n\tupdateable:false,\n\tupsertable:false,\n\tformat: 'table',\n\tskipDuplicateMapInputs: true,\n\tskipDuplicateMapOutputs: true,\n\terrorHandlingOption: 'stopOnFirstError',\n\tmapColumn(\n\t\tarea_type,\n\t\tavailability,\n\t\tlocation,\n\t\tsize,\n\t\tsociety,\n\t\ttotal_sqft,\n\t\tbath,\n\t\tbalcony,\n\t\tprice\n\t)) ~> sink1"
+		}
+	}
+}
